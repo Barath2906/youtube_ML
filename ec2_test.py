@@ -9,7 +9,7 @@ from sklearn.metrics import silhouette_score
 import pickle
 import matplotlib.pyplot as plt
 
-rds_host = "youtube.c7q6aoykitvo.us-east-1.rds.amazonaws.com"
+rds_host = "streamlit.c7q6aoykitvo.us-east-1.rds.amazonaws.com"
 rds_port = "3306"
 rds_user = "admin"
 rds_password = "admin123"
