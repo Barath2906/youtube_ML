@@ -84,24 +84,7 @@ def save_model(vectorizer, kmeans, video_data):
     with open('clustered_data.pkl', 'wb') as f:
         pickle.dump(video_data, f)
 
-def calculate_silhouette_score(tag_vectors, kmeans):
-    cluster_labels = kmeans.labels_
-    silhouette_avg = silhouette_score(tag_vectors, cluster_labels)
-    return silhouette_avg
 
-def plot_clusters(tag_vectors, kmeans):
-    pca = PCA(n_components=2)
-    reduced_vectors = pca.fit_transform(tag_vectors.toarray())
-    
-    cluster_labels = kmeans.labels_
-    
-    plt.figure(figsize=(10, 7))
-    scatter = plt.scatter(reduced_vectors[:, 0], reduced_vectors[:, 1], c=cluster_labels, cmap='viridis', alpha=0.5)
-    plt.colorbar(scatter, label='Cluster Label')
-    plt.title('Clusters Visualization')
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.show()
 
 @st.cache_resource
 def load_pickles():
