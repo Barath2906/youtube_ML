@@ -203,13 +203,4 @@ if st.session_state.selected_video_id:
             st.sidebar.write(f"Likes: {row.get('video_likeCount', 'N/A')}")
             st.sidebar.write(f"Views: {row.get('video_viewCount', 'N/A')}")
             st.sidebar.write(f"Comments: {row.get('video_commentCount', 'N/A')}")
-else:
-    st.sidebar.write("Please select a video to get recommendations.")
 
-# Silhouette Score Calculation
-silhouette_avg = calculate_silhouette_score(tag_vectors, kmeans)
-st.sidebar.write(f"Silhouette Score: {silhouette_avg}")
-
-# Cluster Visualization
-st.write("Cluster Visualization")
-plot_clusters(tag_vectors, kmeans)
