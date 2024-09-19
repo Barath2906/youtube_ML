@@ -16,29 +16,19 @@ rds_password = "admin123"
 rds_dbname = "youtube"
 
 def connect_to_mysql():
-    try:
-        return mysql.connector.connect(
-            host=rds_host,
-            user=rds_user,
-            password=rds_password,
-            database=rds_dbname
-        )
-    except mysql.connector.Error as err:
-        st.error(f"Error: {err}")
-        return None
+    return mysql.connector.connect(
+        host=rds_host,
+        user=rds_user,
+        password=rds_password,
+        database=rds_dbname
+    )
 
 def list_tables():
     connection = connect_to_mysql()
-    if connection:
-        try:
-            query = "SHOW TABLES"
-            tables = pd.read_sql(query, con=connection)
-            return tables
-        except Exception as e:
-            st.error(f"Error fetching tables: {e}")
-        finally:
-            connection.close()
-    return pd.DataFrame()
+    query = "SHOW TABLES"
+    tables = pd.read_sql(query, con=connection)
+    connection.close()
+    return tables
 
 def fetch_data_from_mysql(table_name):
     engine = create_engine(f"mysql+pymysql://{rds_user}:{rds_password}@{rds_host}:{rds_port}/{rds_dbname}")
@@ -52,7 +42,7 @@ def fetch_data_from_mysql(table_name):
         data = pd.read_sql(query, con=engine)
         return data
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        st.error(f"Error: {e}")
         return pd.DataFrame()
 
 def preprocess_data(video_data):
@@ -84,9 +74,26 @@ def save_model(vectorizer, kmeans, video_data):
     with open('clustered_data.pkl', 'wb') as f:
         pickle.dump(video_data, f)
 
+def calculate_silhouette_score(tag_vectors, kmeans):
+    cluster_labels = kmeans.labels_
+    silhouette_avg = silhouette_score(tag_vectors, cluster_labels)
+    return silhouette_avg
 
+def plot_clusters(tag_vectors, kmeans):
+    pca = PCA(n_components=2)
+    reduced_vectors = pca.fit_transform(tag_vectors.toarray())
+    
+    cluster_labels = kmeans.labels_
+    
+    plt.figure(figsize=(10, 7))
+    scatter = plt.scatter(reduced_vectors[:, 0], reduced_vectors[:, 1], c=cluster_labels, cmap='viridis', alpha=0.5)
+    plt.colorbar(scatter, label='Cluster Label')
+    plt.title('Clusters Visualization')
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
+    plt.show()
 
-@st.cache_resource
+@st.cache_data
 def load_pickles():
     with open('vectorizer.pkl', 'rb') as f:
         vectorizer = pickle.load(f)
@@ -96,7 +103,6 @@ def load_pickles():
         video_data = pickle.load(f)
     return vectorizer, kmeans, video_data
 
-# Streamlit Interface
 st.title("YouTube Video Recommendation System")
 
 table_name = "video_data"  
@@ -186,4 +192,11 @@ if st.session_state.selected_video_id:
             st.sidebar.write(f"Likes: {row.get('video_likeCount', 'N/A')}")
             st.sidebar.write(f"Views: {row.get('video_viewCount', 'N/A')}")
             st.sidebar.write(f"Comments: {row.get('video_commentCount', 'N/A')}")
+            video_url = f"https://www.youtube.com/watch?v={row['video_id']}"
+            if st.sidebar.button(f"Play {row['video_title']}", key=f"rec_play_{row['video_id']}"):
+                play_video(row['video_id'])
+                st.video(video_url)
+            
+    st.sidebar.write("Select a video to get recommendations.")
+
 
